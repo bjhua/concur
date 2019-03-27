@@ -91,6 +91,23 @@ func Test_ConInsert100000(t *testing.T) {
 
 }
 
+func Test_ConInsert1000000_single(t *testing.T) {
+	const N = 1000000
+	q := NewPrioQueue(N)
+	wg := &sync.WaitGroup{}
+	wg.Add(N)
+	for i:=0; i<N; i++{
+		go func(j int){
+			q.Insert(1+j)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	check(t, q)
+	//q.Dump("test_con_insert_100000")
+
+}
+
 
 func Test_ConInsert1000000(t *testing.T) {
 	const N = 100
@@ -132,7 +149,7 @@ func Test_ConInsert1000000_2(t *testing.T) {
 
 }
 
-/*
+
 func Test_ConInsert10000000(t *testing.T) {
 	const N = 1000
 	const numRoutines = 10000
@@ -148,6 +165,7 @@ func Test_ConInsert10000000(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
+	check(t, q)
 	//q.Dump("test_con_insert_100000")
 
 }
@@ -167,6 +185,7 @@ func Test_ConInsert10000000_2(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
+	check(t, q)
 	//q.Dump("test_con_insert_100000")
 
 }
@@ -187,6 +206,7 @@ func Test_ConInsert100000000_2(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
+	//check(t, q)
 	//q.Dump("test_con_insert_100000")
 
 }

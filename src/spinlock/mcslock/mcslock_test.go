@@ -1,15 +1,15 @@
-package test
+package mcslock
 
 import (
-	"concur/spinlock/mcslock"
 	"fmt"
+	"lib"
 	"sync"
 	"testing"
 )
 
 func Test_MCSLock(t *testing.T){
 	var i = 0
-	lock := mcslock.New()
+	lock := New()
 	//lock := &sync.Mutex{}
 	var loops = 10000
 	wg := &sync.WaitGroup{}
@@ -41,11 +41,11 @@ func localBench(locker sync.Locker){
 }
 
 func BenchmarkNewMcsLock1(t *testing.B) {
-	lock := mcslock.New()
+	lock := New()
 	//lock := &sync.Mutex{}
 
 	for i:=0; i<t.N; i++{
-		benchLockN(t, 1, lock)
+		lib.BenchLockN(t, 1, lock)
 	}
 	//fmt.Printf("value = %d\n\n\n", vv)
 }

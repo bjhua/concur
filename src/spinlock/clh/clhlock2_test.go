@@ -1,7 +1,6 @@
-package test
+package clh
 
 import (
-	"concur/spinlock"
 	"fmt"
 	"sync"
 	"testing"
@@ -9,7 +8,7 @@ import (
 
 func Test_MCSLock2(t *testing.T){
 	var i = 0
-	lock := spinlock.NewMcsLock2()
+	lock := NewMcsLock2()
 	//lock := &sync.Mutex{}
 	var loops = 10000
 	wg := &sync.WaitGroup{}

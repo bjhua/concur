@@ -1,7 +1,7 @@
 package coarselockprioqueue
 
 import (
-	"concur/lib"
+	"lib"
 	"fmt"
 	"sync"
 )

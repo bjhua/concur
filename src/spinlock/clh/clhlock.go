@@ -1,4 +1,4 @@
-package spinlock
+package clh
 
 import (
 	"sync/atomic"

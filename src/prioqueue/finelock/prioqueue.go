@@ -1,9 +1,17 @@
-package pathlockprioqueue
+package finelockprioqueue
 
 import (
-	"concur/lib"
 	"fmt"
+	"lib"
 	"sync"
+)
+
+type status int
+
+const (
+	Empty status = iota
+	Changing
+	Ready
 )
 
 //////////////////
@@ -11,10 +19,12 @@ type node struct{
 	*sync.Mutex
 
 	priority int
+	tid lib.Tid
+	status status
 }
 
 func NewNode(priority int)*node{
-	return &node{Mutex: &sync.Mutex{}, priority: priority}
+	return &node{Mutex: &sync.Mutex{}, priority: priority, status: Changing}
 }
 
 func (n *node)String()string{
@@ -28,54 +38,87 @@ type PriorityQueue struct{
 	last int     // points to the last element, initially 0
 }
 
-func NewPrioQueue(numElements int)*PriorityQueue{
+func NewPriorityQueue(numElements int)*PriorityQueue{
 	q := &PriorityQueue{Mutex: &sync.Mutex{}}
 	q.arr = make([]*node, numElements+1, numElements+1)
+	q.last = 0
 	return q
 }
 
 func (q *PriorityQueue)Insert(priority int) {
 	const rootIndex = 1
+	var childIndex, parentIndex int
+	backOff := lib.BackoffGen(1, 512)
+
 	fresh := NewNode(priority)
 	q.Lock()
 	q.last++
 	index := q.last
 	q.arr[index] = fresh
-	if index==rootIndex{
-		// no need to do any adjustment
+	if index==rootIndex{ // this is the first element
+		// no need to do any adjustment, the root is ready
+		fresh.Lock()
+		fresh.status = Ready
+		fresh.tid = lib.TidNone
+		fresh.Unlock()
 		q.Unlock()
 		return
 	}
 	q.Unlock()
 	//fmt.Printf("store [%d]=%d\n", index, priority)
 
-	childIndex := index
-	parentIndex := childIndex/2
-	for parentIndex>0{
+	childIndex = index
+	for childIndex>rootIndex{
+		parentIndex = childIndex/2
+
 		//fmt.Printf("parent: %d, child: %d\n", parentIndex, localIndex)
+		// local spin
 		parent := q.arr[parentIndex]
 		child := q.arr[childIndex]
+	RETRY:
 		parent.Lock()
 		child.Lock()
+		if parent.status != Ready{
+			//fmt.Printf("spin on: %d\n", parent.priority)
+			child.Unlock()
+			parent.Unlock()
+			backOff()
+			goto RETRY
+		}
 
 		if parent.priority<= child.priority {
+			child.status = Ready
 			child.Unlock()
 			parent.Unlock()
 			return
 		}
-		tmp := parent.priority
-		parent.priority = child.priority
-		child.priority = tmp
+		swap(child, parent)
 		childIndex = parentIndex
-		parentIndex = childIndex/2
 
 		child.Unlock()
 		parent.Unlock()
 	}
+	q.arr[rootIndex].status = Ready
 }
 
-func (q *PriorityQueue)Remove()int{
-	return 0
+func (q *PriorityQueue)RemoveMin()(int, error){
+
+	return 0, nil
+}
+
+func swap(n1, n2 *node){
+	//
+	priority := n1.priority
+	n1.priority = n2.priority
+	n2.priority = priority
+	//
+	status := n1.status
+	n1.status = n2.status
+	n2.status = status
+	//
+	tid := n1.tid
+	n1.tid = n2.tid
+	n2.tid = tid
 }
 
 func (q *PriorityQueue)Dump(name string){
@@ -92,3 +135,8 @@ func (q *PriorityQueue)Dump(name string){
 	}
 	d.Layout()
 }
+
+
+
+
+

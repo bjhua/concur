@@ -1,56 +1,59 @@
-package test
+package arrlocktimeout
 
 import (
-	"concur/spinlock"
-	"concur/spinlock/arrlock"
 	"fmt"
-	"runtime"
+	"lib"
 	"sync"
 	"testing"
 )
 
-func Test_ArrLock(t *testing.T){
-	i := 0
+const loops = 2000
+
+func Test_ArrLockTimeOut(t *testing.T) {
+	var acc int64 = 0
 	wg := &sync.WaitGroup{}
-	lock := arrlock.New()
+	lock := New()
+	//rcount := make(chan int, 100)
 
-	f := func() {
+	f := func(n int) {
 		defer wg.Done()
+		var numTry = 0
+		var numLock = 0
 
-		for j:=0; j<10000; j++{
-			lock.Lock()
-			i++
-			lock.Unlock()
+		for j := 0; j < 4; j++ {
+			var locked = lock.TryLock(10)
+			if locked {
+				numTry++
+				acc++
+				lock.Unlock()
+			} else {
+				lock.Lock()
+				numLock++
+				acc++
+				//fmt.Println("test.unlock()", locked)
+				lock.Unlock()
+			}
 		}
+		fmt.Printf("tries: %d, locks: %d\n", numTry, numLock)
 	}
-	wg.Add(2)
-	go f()
-	go f()
+	wg.Add(loops)
+	for i := 0; i < loops; i++ {
+		go f(i)
+	}
 	wg.Wait()
-	if i != 2*10000{
+	if acc != 4*loops {
+		fmt.Printf("%d\n", acc)
 		panic("wrong")
 	}
 }
 
-func BenchmarkAbLock1(t *testing.B) {
-	sl := arrlock.New()
+func Benchmark_ArrLockTimeOut(t *testing.B) {
+	sl := New()
 
-
-	for i:=0; i<t.N; i++{
-		benchLockN(t, 1, sl)
-	}
-	//fmt.Printf("value = %d\n\n\n", vv)
-}
-
-func BenchmarkArrLock1(t *testing.B) {
-	sl := spinlock.NewSpinLock()
-
-	runtime.GOMAXPROCS(30)
-
-	for numCore:=1; numCore<30; numCore++{
-		t.Run(fmt.Sprintf("numCore-%d", numCore), func (b *testing.B){
-			for i:=0; i<b.N; i++{
-				benchLockN(t, numCore, sl)
+	for numCore := 1; numCore < 30; numCore++ {
+		t.Run(fmt.Sprintf("numCore-%d", numCore), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				lib.BenchLockN(t, numCore, sl)
 			}
 		})
 	}
@@ -160,5 +163,3 @@ func BenchmarkAbLock64(t *testing.B) {
 }
 
 */
-
-

@@ -1,4 +1,4 @@
-package spinlock
+package ticket
 
 import (
 	"sync/atomic"

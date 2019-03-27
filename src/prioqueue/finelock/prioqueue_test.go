@@ -1,6 +1,7 @@
-package pathlockprioqueue
+package finelockprioqueue
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 )
@@ -31,7 +32,7 @@ func check(t *testing.T, q *PriorityQueue){
 
 func TestPioQueue(t *testing.T) {
 	const N = 10
-	q := NewPrioQueue(N)
+	q := NewPriorityQueue(N)
 	for i:=0; i<N; i++{
 		q.Insert(20+i)
 	}
@@ -41,7 +42,7 @@ func TestPioQueue(t *testing.T) {
 
 func Test_ConInsert10(t *testing.T) {
 	const N = 10
-	q := NewPrioQueue(N)
+	q := NewPriorityQueue(N)
 	wg := &sync.WaitGroup{}
 	wg.Add(N)
 	for i:=0; i<N; i++{
@@ -59,7 +60,7 @@ func Test_ConInsert10(t *testing.T) {
 
 func Test_ConInsert10_reverse(t *testing.T) {
 	const N = 10
-	q := NewPrioQueue(N)
+	q := NewPriorityQueue(N)
 	wg := &sync.WaitGroup{}
 	wg.Add(N)
 	for i:=0; i<N; i++{
@@ -77,7 +78,7 @@ func Test_ConInsert10_reverse(t *testing.T) {
 
 func Test_ConInsert100(t *testing.T) {
 	const N = 100
-	q := NewPrioQueue(N)
+	q := NewPriorityQueue(N)
 	wg := &sync.WaitGroup{}
 	wg.Add(N)
 	for i:=0; i<N; i++{
@@ -93,7 +94,7 @@ func Test_ConInsert100(t *testing.T) {
 
 func Test_ConInsert1000(t *testing.T) {
 	const N = 1000
-	q := NewPrioQueue(N)
+	q := NewPriorityQueue(N)
 	wg := &sync.WaitGroup{}
 	wg.Add(N)
 	for i:=0; i<N; i++{
@@ -110,7 +111,7 @@ func Test_ConInsert1000(t *testing.T) {
 
 func Test_ConInsert100000(t *testing.T) {
 	const N = 100000
-	q := NewPrioQueue(N)
+	q := NewPriorityQueue(N)
 	wg := &sync.WaitGroup{}
 	wg.Add(N)
 	for i:=0; i<N; i++{
@@ -125,10 +126,106 @@ func Test_ConInsert100000(t *testing.T) {
 
 }
 
+func Test_ConInsert200000_2(t *testing.T) {
+	const N = 200000
+	q := NewPriorityQueue(N)
+	wg := &sync.WaitGroup{}
+	wg.Add(N)
+	for i:=0; i<N; i++{
+		go func(j int){
+			q.Insert(1+j)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	check(t, q)
+	//q.Dump("test_con_insert_100000")
+
+}
+
+func Test_ConInsert1000000_single(t *testing.T) {
+	const N = 1000000
+	q := NewPriorityQueue(N)
+	wg := &sync.WaitGroup{}
+	wg.Add(N)
+	for i:=0; i<N; i++{
+		go func(j int){
+			q.Insert(1+j)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	fmt.Printf("insert done\n")
+	check(t, q)
+	//q.Dump("test_con_insert_100000")
+
+}
+
+func Test_ConInsert200000(t *testing.T) {
+	const N = 100
+	const numRoutines = 2000
+	q := NewPriorityQueue(N*numRoutines)
+	wg := &sync.WaitGroup{}
+	wg.Add(numRoutines)
+	for i:=0; i<numRoutines; i++{
+		go func(j int){
+			for k:=0; k<N; k++{
+				q.Insert(j*N + k)
+			}
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	check(t, q)
+	//q.Dump("test_con_insert_100000")
+
+}
+
+func Test_ConInsert300000(t *testing.T) {
+	const N = 100
+	const numRoutines = 3000
+	q := NewPriorityQueue(N*numRoutines)
+	wg := &sync.WaitGroup{}
+	wg.Add(numRoutines)
+	for i:=0; i<numRoutines; i++{
+		go func(j int){
+			for k:=0; k<N; k++{
+				q.Insert(j*N + k)
+			}
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	check(t, q)
+	//q.Dump("test_con_insert_100000")
+
+}
+
+
+func Test_ConInsert500000(t *testing.T) {
+	const N = 100
+	const numRoutines = 5000
+	q := NewPriorityQueue(N*numRoutines)
+	wg := &sync.WaitGroup{}
+	wg.Add(numRoutines)
+	for i:=0; i<numRoutines; i++{
+		go func(j int){
+			for k:=0; k<N; k++{
+				q.Insert(j*N + k)
+			}
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	check(t, q)
+	//q.Dump("test_con_insert_100000")
+
+}
+
 func Test_ConInsert1000000(t *testing.T) {
 	const N = 100
 	const numRoutines = 10000
-	q := NewPrioQueue(N*numRoutines)
+	q := NewPriorityQueue(N*numRoutines)
 	wg := &sync.WaitGroup{}
 	wg.Add(numRoutines)
 	for i:=0; i<numRoutines; i++{
@@ -148,7 +245,7 @@ func Test_ConInsert1000000(t *testing.T) {
 func Test_ConInsert10000000(t *testing.T) {
 	const N = 1000
 	const numRoutines = 10000
-	q := NewPrioQueue(N*numRoutines)
+	q := NewPriorityQueue(N*numRoutines)
 	wg := &sync.WaitGroup{}
 	wg.Add(numRoutines)
 	for i:=0; i<numRoutines; i++{
@@ -169,7 +266,7 @@ func Test_ConInsert10000000(t *testing.T) {
 func Test_ConInsert10000000_2(t *testing.T) {
 	const N = 1000000
 	const numRoutines = 10
-	q := NewPrioQueue(N*numRoutines)
+	q := NewPriorityQueue(N*numRoutines)
 	wg := &sync.WaitGroup{}
 	wg.Add(numRoutines)
 	for i:=0; i<numRoutines; i++{
@@ -189,7 +286,7 @@ func Test_ConInsert10000000_2(t *testing.T) {
 func Test_ConInsert100000000_2(t *testing.T) {
 	const N = 10000000
 	const numRoutines = 10
-	q := NewPrioQueue(N*numRoutines)
+	q := NewPriorityQueue(N*numRoutines)
 	wg := &sync.WaitGroup{}
 	wg.Add(numRoutines)
 	for i:=0; i<numRoutines; i++{
@@ -201,7 +298,7 @@ func Test_ConInsert100000000_2(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
-	check(t, q)
+	//check(t, q)
 	//q.Dump("test_con_insert_100000")
 
 }

@@ -1,7 +1,7 @@
 package test
 
 import (
-	"concur/spinlock"
+	"spinlock"
 	"fmt"
 	"sync"
 	"sync/atomic"
