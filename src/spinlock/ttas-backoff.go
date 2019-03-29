@@ -7,7 +7,6 @@ import (
 
 type TtasBackoff struct {
 	locked int64
-	bo     []string
 }
 
 func NewTtasBackoff() *TtasBackoff {
